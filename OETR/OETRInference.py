@@ -1,7 +1,7 @@
 import cv2
 import torch
-from src.model import OETR
-from src.config.default import get_cfg_defaults
+from .src.model import OETR
+from .src.config.default import get_cfg_defaults
 
 torch.set_grad_enabled(False)
 
