@@ -44,8 +44,7 @@ class MatchingTool:
     def getMatchPoint(self, img1, img2):
         self.img1_cv2 = img1
         self.img2_cv2 = img2
-        parent_directory = "."
-        directory = r'SuperGluePretrainedNetwork\\assets\\scannet_sample_images'
+        directory = 'SuperGluePretrainedNetwork\\assets\\scannet_sample_images'
         os.chdir(directory)
         cv2.imwrite('img1.png', img1)
         cv2.imwrite('img2.png', img2)
@@ -163,16 +162,16 @@ class MatchingTool:
 
             # Keep the matching keypoints.
             valid = matches > -1
-
+            os.chdir("../../..")
             mkpts0 = kpts0[valid]
             mkpts1 = kpts1[matches[valid]]
-        os.chdir(parent_directory)
+
         return mkpts0, mkpts1
 
     def visualizeImages(self, img1, img2):
         self.img1_cv2 = img1
         self.img2_cv2 = img2
-        directory = r'SuperGluePretrainedNetwork\\assets\\scannet_sample_images'
+        directory = 'SuperGluePretrainedNetwork\\assets\\scannet_sample_images'
         os.chdir(directory)
         cv2.imwrite('img1.png', img1)
         cv2.imwrite('img2.png', img2)
@@ -318,3 +317,4 @@ class MatchingTool:
                     1, 1, 'Matches', small_text)
 
                 timer.update('viz_match')
+        os.chdir("../../..")
