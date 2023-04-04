@@ -20,7 +20,7 @@ torch.set_grad_enabled(False)
 
 
 class MatchingTool:
-    def __init__(self, resize_float=True, eval=True, input_pairs="assets/scannet_sample_pairs_with_gt.txt", input_dir="assets/scannet_sample_images/", output_dir="C:/SuperGluePretrainedNetwork/dump_match_pairs", max_length=-1, resize=[640, 480], superglue="indoor", max_keypoints=-1, keypoint_threshold=0.005, nms_radius=4, sinkhorn_iterations=20, match_threshold=0.2, viz=True, viz_extension='png', cache=True):
+    def __init__(self, resize_float=True, eval=True, input_pairs="assets/scannet_sample_pairs_with_gt.txt", input_dir="assets/scannet_sample_images/", output_dir="SuperGluePretrainedNetwork/dump_match_pairs", max_length=-1, resize=[640, 480], superglue="indoor", max_keypoints=-1, keypoint_threshold=0.005, nms_radius=4, sinkhorn_iterations=20, match_threshold=0.2, viz=True, viz_extension='png', cache=True):
         self.resize_float = resize_float
         self.img1_cv2 = None
         self.img2_cv2 = None
@@ -44,7 +44,7 @@ class MatchingTool:
     def getMatchPoint(self, img1, img2):
         self.img1_cv2 = img1
         self.img2_cv2 = img2
-        directory = r'.\\assets\\scannet_sample_images'
+        directory = r'assets\scannet_sample_images'
         os.chdir(directory)
         cv2.imwrite('img1.png', img1)
         cv2.imwrite('img2.png', img2)
@@ -77,14 +77,18 @@ class MatchingTool:
             }
         }
         matching = Matching(config).eval().to(device)
+        print("matching")
+        print(matching)
         input_dir = Path(self.input_dir)
-        output_dir = Path(self.output_dir)
+        output_dir = Path("../"+self.output_dir)
         output_dir.mkdir(exist_ok=True, parents=True)
 
         timer = AverageTimer(newline=True)
 
         for i, pair in enumerate(self.pairs):
             name0, name1 = pair[:2]
+            print("khoi")
+
             stem0, stem1 = Path(name0).stem, Path(name1).stem
             matches_path = output_dir / \
                 '{}_{}_matches.npz'.format(stem0, stem1)
@@ -94,7 +98,7 @@ class MatchingTool:
                 '{}_{}_matches.{}'.format(stem0, stem1, self.viz_extension)
             viz_eval_path = output_dir / \
                 '{}_{}_evaluation.{}'.format(stem0, stem1, self.viz_extension)
-
+            print(matches_path)
             # Handle --cache logic.
             do_match = True
             do_eval = self.eval
@@ -104,11 +108,18 @@ class MatchingTool:
                 if matches_path.exists():
                     try:
                         results = np.load(matches_path)
+                        print("khoi1")
+                        print(results)
                     except:
                         raise IOError('Cannot load matches .npz file: %s' %
                                       matches_path)
 
                     kpts0, kpts1 = results['keypoints0'], results['keypoints1']
+                    print("khoi2")
+                    print(kpts0)
+                    print("khoi3")
+                    print(kpts1)
+                    print("khoi4")
                     matches, conf = results['matches'], results['match_confidence']
                     do_match = False
                 if self.eval and eval_path.exists():
@@ -132,9 +143,9 @@ class MatchingTool:
             # If a rotation integer is provided (e.g. from EXIF data), use it:
             # Load the image pair.
 
-            image0, inp0, scales0 = read_image(
+            image0, inp0 ,a= read_image(
                 name0, device, self.resize, 0, self.resize_float)
-            image1, inp1, scales1 = read_image(
+            image1, inp1 ,b= read_image(
                 name1, device, self.resize, 0, self.resize_float)
 
             if image0 is None or image1 is None:
@@ -158,13 +169,14 @@ class MatchingTool:
                 out_matches = {'keypoints0': kpts0, 'keypoints1': kpts1,
                                'matches': matches, 'match_confidence': conf}
                 np.savez(str(matches_path), **out_matches)
-
+            print("check")
             # Keep the matching keypoints.
             valid = matches > -1
-
+            # print(pred)
             mkpts0 = kpts0[valid]
             mkpts1 = kpts1[matches[valid]]
-        return [mkpts0, mkpts1]
+            # print(pred) 
+        return kpts1[matches[valid]]
 
     def visualizeImages(self, img1, img2):
         self.img1_cv2 = img1
@@ -270,7 +282,7 @@ class MatchingTool:
 
             if do_match:
                 # Perform the matching.
-
+                               
                 pred = matching({'image0': inp0, 'image1': inp1})
 
                 pred = {k: v[0].cpu().numpy() for k, v in pred.items()}
