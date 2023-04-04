@@ -49,6 +49,7 @@ import argparse
 import cv2
 import matplotlib.cm as cm
 import torch
+import numpy as np
 
 from models.matching import Matching
 from models.utils import (AverageTimer, VideoStreamer,
@@ -194,12 +195,14 @@ if __name__ == '__main__':
         pred = matching({**last_data, 'image1': frame_tensor})
         kpts0 = last_data['keypoints0'][0].cpu().numpy()
         kpts1 = pred['keypoints1'][0].cpu().numpy()
+        print("MAX ", np.max(kpts0))
         matches = pred['matches0'][0].cpu().numpy()
         confidence = pred['matching_scores0'][0].cpu().numpy()
         timer.update('forward')
-
+        print(len(kpts1), len(matches))
         valid = matches > -1
         mkpts0 = kpts0[valid]
+        print("Matches Valid: ", matches)
         mkpts1 = kpts1[matches[valid]]
         color = cm.jet(confidence[valid])
         text = [
