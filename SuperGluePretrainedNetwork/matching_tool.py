@@ -20,7 +20,7 @@ torch.set_grad_enabled(False)
 
 
 class MatchingTool:
-    def __init__(self, resize_float=True, eval=True, input_pairs="assets/scannet_sample_pairs_with_gt.txt", input_dir="assets/scannet_sample_images/", output_dir="assets/dump_match_pairs", max_length=-1, resize = [-1], superglue="indoor", max_keypoints=-1, keypoint_threshold=0.005, nms_radius=4, sinkhorn_iterations=20, match_threshold=0.2, viz=True, viz_extension='png', cache=True):
+    def __init__(self, resize_float=True, eval=True, input_pairs="assets/scannet_sample_pairs_with_gt.txt", input_dir="assets/scannet_sample_images/", output_dir="assets/dump_match_pairs", max_length=-1, resize = [640,480], superglue="outdoor", max_keypoints=-1, keypoint_threshold=0.005, nms_radius=4, sinkhorn_iterations=20, match_threshold=0.2, viz=True, viz_extension='png', cache=False):
         self.resize_float = resize_float
         self.img1_cv2 = None
         self.img2_cv2 = None
@@ -44,12 +44,11 @@ class MatchingTool:
     def getMatchPoint(self, img1, img2):
         self.img1_cv2 = img1
         self.img2_cv2 = img2
-        parent_directory = "."
         directory = r'SuperGluePretrainedNetwork\\assets\\scannet_sample_images'
         os.chdir(directory)
         cv2.imwrite('img1.png', img1)
         cv2.imwrite('img2.png', img2)
-        print("img1 size", img1.shape)
+        # print("img1 size", img1.shape)
 
         if len(self.resize) == 2 and self.resize[1] == -1:
             self.resize = self.resize[0:1]
@@ -165,7 +164,7 @@ class MatchingTool:
 
             mkpts0 = kpts0[valid]
             mkpts1 = kpts1[matches[valid]]
-        os.chdir(parent_directory)
+        os.chdir("../../..")
         return mkpts0, mkpts1
 
     def visualizeImages(self, img1, img2):
@@ -316,3 +315,4 @@ class MatchingTool:
                     1, 1, 'Matches', small_text)
 
                 timer.update('viz_match')
+        os.chdir("../../..")
