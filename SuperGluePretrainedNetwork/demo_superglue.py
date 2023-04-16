@@ -49,7 +49,6 @@ import argparse
 import cv2
 import matplotlib.cm as cm
 import torch
-import numpy as np
 
 from models.matching import Matching
 from models.utils import (AverageTimer, VideoStreamer,
@@ -59,6 +58,7 @@ torch.set_grad_enabled(False)
 
 
 if __name__ == '__main__':
+    print("Cuda: ", torch.cuda.is_available())
     parser = argparse.ArgumentParser(
         description='SuperGlue demo',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -89,7 +89,7 @@ if __name__ == '__main__':
         '--superglue', choices={'indoor', 'outdoor'}, default='indoor',
         help='SuperGlue weights')
     parser.add_argument(
-        '--max_keypoints', type=int, default=199,
+        '--max_keypoints', type=int, default=-1,
         help='Maximum number of keypoints detected by Superpoint'
              ' (\'-1\' keeps all keypoints)')
     parser.add_argument(
@@ -117,9 +117,7 @@ if __name__ == '__main__':
         help='Force pytorch to run in CPU mode.')
 
     opt = parser.parse_args()
-    print("Khoi start")
     print(opt)
-    print("Khoi end")
 
     if len(opt.resize) == 2 and opt.resize[1] == -1:
         opt.resize = opt.resize[0:1]
@@ -152,10 +150,10 @@ if __name__ == '__main__':
 
     vs = VideoStreamer(opt.input, opt.resize, opt.skip,
                        opt.image_glob, opt.max_length)
-    frame, ret = vs.next_frame() # 1 
+    frame, ret = vs.next_frame()
     assert ret, 'Error when reading the first frame (try different --input?)'
 
-    frame_tensor = frame2tensor(frame, device)# 2
+    frame_tensor = frame2tensor(frame, device)
     last_data = matching.superpoint({'image': frame_tensor})
     last_data = {k+'0': last_data[k] for k in keys}
     last_data['image0'] = frame_tensor
@@ -195,14 +193,12 @@ if __name__ == '__main__':
         pred = matching({**last_data, 'image1': frame_tensor})
         kpts0 = last_data['keypoints0'][0].cpu().numpy()
         kpts1 = pred['keypoints1'][0].cpu().numpy()
-        print("MAX ", np.max(kpts0))
         matches = pred['matches0'][0].cpu().numpy()
         confidence = pred['matching_scores0'][0].cpu().numpy()
         timer.update('forward')
-        print(len(kpts1), len(matches))
+
         valid = matches > -1
         mkpts0 = kpts0[valid]
-        print("Matches Valid: ", matches)
         mkpts1 = kpts1[matches[valid]]
         color = cm.jet(confidence[valid])
         text = [

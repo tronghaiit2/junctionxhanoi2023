@@ -94,7 +94,7 @@ if __name__ == '__main__':
         '--superglue', choices={'indoor', 'outdoor'}, default='indoor',
         help='SuperGlue weights')
     parser.add_argument(
-        '--max_keypoints', type=int, default=50,
+        '--max_keypoints', type=int, default=1024,
         help='Maximum number of keypoints detected by Superpoint'
              ' (\'-1\' keeps all keypoints)')
     parser.add_argument(
@@ -112,7 +112,7 @@ if __name__ == '__main__':
         help='SuperGlue match threshold')
 
     parser.add_argument(
-        '--viz', default=True, action='store_true',
+        '--viz', action='store_true',
         help='Visualize the matches and dump the plots')
     parser.add_argument(
         '--eval', action='store_true',
@@ -141,16 +141,12 @@ if __name__ == '__main__':
         help='Force pytorch to run in CPU mode.')
 
     opt = parser.parse_args()
-    print("khoi")
     print(opt)
 
-    assert not (
-        opt.opencv_display and not opt.viz), 'Must use --viz with --opencv_display'
-    assert not (
-        opt.opencv_display and not opt.fast_viz), 'Cannot use --opencv_display without --fast_viz'
+    assert not (opt.opencv_display and not opt.viz), 'Must use --viz with --opencv_display'
+    assert not (opt.opencv_display and not opt.fast_viz), 'Cannot use --opencv_display without --fast_viz'
     assert not (opt.fast_viz and not opt.viz), 'Must use --viz with --fast_viz'
-    assert not (opt.fast_viz and opt.viz_extension ==
-                'pdf'), 'Cannot use pdf extension with --fast_viz'
+    assert not (opt.fast_viz and opt.viz_extension == 'pdf'), 'Cannot use pdf extension with --fast_viz'
 
     if len(opt.resize) == 2 and opt.resize[1] == -1:
         opt.resize = opt.resize[0:1]
@@ -166,7 +162,6 @@ if __name__ == '__main__':
 
     with open(opt.input_pairs, 'r') as f:
         pairs = [l.split() for l in f.readlines()]
-        print(pairs)
 
     if opt.max_length > -1:
         pairs = pairs[0:np.min([len(pairs), opt.max_length])]
@@ -216,8 +211,7 @@ if __name__ == '__main__':
         stem0, stem1 = Path(name0).stem, Path(name1).stem
         matches_path = output_dir / '{}_{}_matches.npz'.format(stem0, stem1)
         eval_path = output_dir / '{}_{}_evaluation.npz'.format(stem0, stem1)
-        viz_path = output_dir / \
-            '{}_{}_matches.{}'.format(stem0, stem1, opt.viz_extension)
+        viz_path = output_dir / '{}_{}_matches.{}'.format(stem0, stem1, opt.viz_extension)
         viz_eval_path = output_dir / \
             '{}_{}_evaluation.{}'.format(stem0, stem1, opt.viz_extension)
 
@@ -263,8 +257,8 @@ if __name__ == '__main__':
             rot0, rot1 = int(pair[2]), int(pair[3])
         else:
             rot0, rot1 = 0, 0
+
         # Load the image pair.
-    
         image0, inp0, scales0 = read_image(
             input_dir / name0, device, opt.resize, rot0, opt.resize_float)
         image1, inp1, scales1 = read_image(
@@ -277,11 +271,8 @@ if __name__ == '__main__':
 
         if do_match:
             # Perform the matching.
-
             pred = matching({'image0': inp0, 'image1': inp1})
-
             pred = {k: v[0].cpu().numpy() for k, v in pred.items()}
-
             kpts0, kpts1 = pred['keypoints0'], pred['keypoints1']
             matches, conf = pred['matches0'], pred['matching_scores0']
             timer.update('matcher')
@@ -293,11 +284,10 @@ if __name__ == '__main__':
 
         # Keep the matching keypoints.
         valid = matches > -1
-
         mkpts0 = kpts0[valid]
         mkpts1 = kpts1[matches[valid]]
         mconf = conf[valid]
-        
+
         if do_eval:
             # Estimate the pose and compute the pose error.
             assert len(pair) == 38, 'Pair does not have ground truth info'

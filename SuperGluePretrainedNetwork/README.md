@@ -345,7 +345,7 @@ When generating output images with `match_pairs.py`, the default `--viz` flag us
 ./match_pairs.py --viz --viz_extension pdf
 ```
 
-Alternatively, y  nCV-based image renderer as follows:
+Alternatively, you might want to save visualization images but have the generation be much faster.  You can use the `--fast_viz` flag to use an OpenCV-based image renderer as follows:
 
 ```
 ./match_pairs.py --viz --fast_viz
