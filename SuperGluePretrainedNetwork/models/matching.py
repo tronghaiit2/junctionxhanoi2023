@@ -80,4 +80,5 @@ class Matching(torch.nn.Module):
 
         # Perform the matching
         pred = {**pred, **self.superglue(data)}
+
         return pred
